@@ -1,118 +1,138 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import * as React from "react";
+import { View, TextInput, Button, Alert } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { WebView } from "react-native-webview";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import OpenAI from "openai";
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+// Screen for Writing JavaScript Code
+// @ts-ignore
+function CodeScreen({ navigation }) {
+  const [code, setCode] = React.useState("");
+  const [prompt, setPrompt] = React.useState("");
+  const openai = new OpenAI({ apiKey: "sk-proj-niumTUNBEp76WfZe96bpT3BlbkFJnrxLBA05OQzTV6CkVMUS" });
+  const context = "You are a HTML code translator. Your role is to translate natural language to HTML. Your only output should be HTML-code. Do not include any other text. Inside HTML-code can only exist css code in tag style and javascript code in tag script. All code that you will generate will be executed in the webView component in mobile application. If you need to save any data then save it to the local storage.";
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  React.useEffect(() => {
+    const loadCode = async () => {
+      const savedCode = await AsyncStorage.getItem("savedCode");
+      if (savedCode) {
+        setCode(savedCode);
+      }
+    };
+    loadCode();
+  }, []);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  function trimString(str: string) {
+    if (str.length > 10) {
+      return str.substring(7, str.length - 3);
+    } else {
+      return "";
+    }
+  }
+
+  const handleRunPrompt = async () => {
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4",
+        temperature: 0,
+        messages: [
+          {
+            "role": "system",
+            "content": context
+          },
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 4000
+      });
+      // @ts-ignore
+      const trimmedCode = response.choices[0].message.content.trim();
+      // @ts-ignore
+      setCode(trimString(trimmedCode));
+      await AsyncStorage.setItem("savedCode", trimmedCode);
+    } catch (error) {
+      // @ts-ignore
+      Alert.alert(error.message);
+    }
+  };
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={{ flex: 1, padding: 16 }}>
+      <TextInput
+        style={{
+          flex: 0.5,
+          borderColor: "gray",
+          borderWidth: 1,
+          marginBottom: 10,
+          padding: 10
+        }}
+        multiline
+        placeholder="Enter your prompt for OpenAI..."
+        onChangeText={setPrompt}
+        value={prompt}
+      />
+      <Button title="Run Prompt" onPress={handleRunPrompt} />
+      <TextInput
+        style={{
+          flex: 1,
+          borderColor: "gray",
+          borderWidth: 1,
+          marginTop: 10,
+          padding: 10
+        }}
+        multiline
+        placeholder="Write JavaScript code here..."
+        onChangeText={setCode}
+        value={code}
+      />
+      <Button
+        title="Run Code"
+        onPress={() => navigation.navigate("WebView", { code })}
+      />
     </View>
   );
 }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+// @ts-ignore
+function WebViewScreen({ route }) {
+  if (!route.params) {
+    const emptyHTML = `<div>Tap to menu to generate any app you want</div>`;
+    // @ts-ignore
+    return <WebView source={{ emptyHTML }} style={{ flex: 1 }} />;
+  }
+  const { code } = route.params;
+  const html = code;
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+  return <WebView source={{ html }} style={{ flex: 1 }} />;
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+// Stack Navigator
+const Stack = createNativeStackNavigator();
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="WebView">
+        <Stack.Screen name="Code" component={CodeScreen} />
+        <Stack.Screen
+          name="WebView"
+          component={WebViewScreen}
+          options={({ navigation }) => ({
+            title: "My craft App",
+            headerRight: () => (
+              <Button
+                onPress={() => navigation.navigate("Code")}
+                title="Edit Code"
+                color="#000"
+              />
+            )
+          })}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 
 export default App;
