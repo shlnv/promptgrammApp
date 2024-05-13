@@ -22,8 +22,8 @@ function NewAppScreen({ navigation }: any) {
     setLoading(true);
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-16k",
-        temperature: 1,
+        model: "gpt-4o",
+        temperature: 2,
         messages: [{ role: "system", content: NEW_APP_CONTEXT }, { role: "user", content: prompt }],
         max_tokens: 4096
       });
@@ -115,16 +115,16 @@ function FeatureScreen({ navigation }: any) {
     setLoading(true);
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-16k",
-        temperature: 1,
+        model: "gpt-4o",
+        temperature: 2,
         messages: [{ role: "system", content: ADD_FEATURE_CONTEXT + code }, { role: "user", content: prompt }],
         max_tokens: 4096
       });
       // @ts-ignore
       const receivedCode = trimCode(response.choices[0].message.content);
       const minification = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-16k",
-        temperature: 1,
+        model: "gpt-4o",
+        temperature: 0,
         messages: [{ role: "system", content: MINIFICATION_CONTEXT }, { role: "user", content: receivedCode }],
         max_tokens: 4096
       });
