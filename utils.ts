@@ -8,3 +8,10 @@ export const trimCode = (code: string | null) => {
   }
   return code.trim();
 };
+
+export enum GPTmodels {
+  "GPT4o" = "gpt-4o",
+  "GPT4T" = "gpt-4-turbo",
+  "GPT4" = "gpt-4",
+  "GPT432k" = "gpt-4-32k",
+}

@@ -9,6 +9,8 @@ import { NEW_APP_CONTEXT, API_KEY, ADD_FEATURE_CONTEXT, MINIFICATION_CONTEXT } f
 import { useEffect, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { trimCode } from "./utils.ts";
+import { GPTmodels } from "./utils.ts";
+import { Picker } from "@react-native-picker/picker";
 
 const Drawer = createDrawerNavigator();
 
@@ -20,18 +22,23 @@ function NewAppScreen({ navigation }: any) {
 
   const handleGenerateCode = async () => {
     setLoading(true);
+    const model = await AsyncStorage.getItem('selectedGPTModel') || GPTmodels.GPT4;
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        temperature: 2,
+        model: model,
+        temperature: 1,
         messages: [{ role: "system", content: NEW_APP_CONTEXT }, { role: "user", content: prompt }],
-        max_tokens: 4096
+        max_tokens: 4096,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0
       });
       // @ts-ignore
       const receivedCode = trimCode(response.choices[0].message.content);
       await AsyncStorage.setItem("savedCode", receivedCode);
       setCode(receivedCode);
     } catch (error) {
+      console.log(error);
       // @ts-ignore
       Alert.alert(error.message);
     }
@@ -113,17 +120,18 @@ function FeatureScreen({ navigation }: any) {
 
   const handleEditCode = async () => {
     setLoading(true);
+    const model = await AsyncStorage.getItem('selectedGPTModel') || GPTmodels.GPT4;
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        temperature: 2,
+        model: model,
+        temperature: 1,
         messages: [{ role: "system", content: ADD_FEATURE_CONTEXT + code }, { role: "user", content: prompt }],
         max_tokens: 4096
       });
       // @ts-ignore
       const receivedCode = trimCode(response.choices[0].message.content);
       const minification = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: model,
         temperature: 0,
         messages: [{ role: "system", content: MINIFICATION_CONTEXT }, { role: "user", content: receivedCode }],
         max_tokens: 4096
@@ -156,11 +164,45 @@ function FeatureScreen({ navigation }: any) {
                  multiline
                  placeholder="HTML/CSS/JS"
                  onChangeText={async (value) => {
-        AsyncStorage.setItem("savedCode", value);
-        setCode(value);
-      }}
+                   AsyncStorage.setItem("savedCode", value);
+                   setCode(value);
+                 }}
                  value={code} />
       <Button title="Run App" onPress={() => navigation.navigate("CustomAppScreen", { codeStamp: code })} />
+    </View>
+  );
+};
+
+function Settings() {
+  const [selectedModel, setSelectedModel] = useState(GPTmodels.GPT4);
+
+  useEffect(() => {
+    const loadModelSetting = async () => {
+      const model = await AsyncStorage.getItem('selectedModel');
+      if (model) {
+        // @ts-ignore
+        setSelectedModel(model);
+      }
+    };
+    loadModelSetting();
+  }, []);
+
+  const saveModelSetting = async (model: GPTmodels) => {
+    await AsyncStorage.setItem('selectedModel', model);
+    setSelectedModel(model);
+  };
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Text>Select GPT Model:</Text>
+      <Picker
+        selectedValue={selectedModel}
+        onValueChange={(itemValue, itemIndex) => saveModelSetting(itemValue)}
+      >
+        {Object.values(GPTmodels).map((model, index) => (
+          <Picker.Item key={index} label={model} value={model} />
+        ))}
+      </Picker>
     </View>
   );
 };
@@ -178,6 +220,9 @@ function App() {
         <Drawer.Screen name="NewAppScreen"
                        component={NewAppScreen}
                        options={{ title: "New App" }} />
+        <Drawer.Screen name="Settings"
+                       component={Settings}
+                       options={{ title: "Settings" }} />
       </Drawer.Navigator>
     </NavigationContainer>
   );
