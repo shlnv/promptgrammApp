@@ -5,8 +5,10 @@ import NewAppScreen from "./src/components/NewAppScreen.tsx"
 import CustomAppScreen from "./src/components/CustomAppScreen.tsx";
 import FeatureScreen from "./src/components/FeatureScreen.tsx";
 import SettingsScreen from "./src/components/SettingsScreen.tsx";
+import OPENAI_API_KEY from "@env";
 import OpenAI from "openai";
-const API_KEY = "sk-proj-niumTUNBEp76WfZe96bpT3BlbkFJnrxLBA05OQzTV6CkVMUS";
+const API_KEY = OPENAI_API_KEY;
+// @ts-ignore
 export const openai = new OpenAI({ apiKey: API_KEY });
 const Drawer = createDrawerNavigator();
 
