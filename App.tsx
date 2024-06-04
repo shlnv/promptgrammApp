@@ -1,14 +1,12 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import NewAppScreen from "./src/components/NewAppScreen.tsx"
+import NewAppScreen from "./src/components/NewAppScreen.tsx";
 import CustomAppScreen from "./src/components/CustomAppScreen.tsx";
 import FeatureScreen from "./src/components/FeatureScreen.tsx";
 import SettingsScreen from "./src/components/SettingsScreen.tsx";
-import OPENAI_API_KEY from "@env";
 import OpenAI from "openai";
-const API_KEY = OPENAI_API_KEY;
-// @ts-ignore
+import { OPENAI_API_KEY as API_KEY } from "./secretKeys";
 export const openai = new OpenAI({ apiKey: API_KEY });
 const Drawer = createDrawerNavigator();
 

@@ -22,6 +22,7 @@ DerivedData
 *.xcuserstate
 **/.xcode.env.local
 .env
+secretKeys.js
 
 # Android/IntelliJ
 #
