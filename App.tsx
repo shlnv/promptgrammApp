@@ -7,27 +7,31 @@ import FeatureScreen from "./src/components/FeatureScreen.tsx";
 import SettingsScreen from "./src/components/SettingsScreen.tsx";
 import OpenAI from "openai";
 import { OPENAI_API_KEY as API_KEY } from "./secretKeys";
+import ContextProvider from "./src/context/ContextProvider.tsx";
+
 export const openai = new OpenAI({ apiKey: API_KEY });
 const Drawer = createDrawerNavigator();
 
 function App() {
   return (
-    <NavigationContainer>
-      <Drawer.Navigator initialRouteName="CustomAppScreen">
-        <Drawer.Screen name="CustomAppScreen"
-                       component={CustomAppScreen}
-                       options={{ title: "Custom App" }} />
-        <Drawer.Screen name="FeatureScreen"
-                       component={FeatureScreen}
-                       options={{ title: "Feature" }} />
-        <Drawer.Screen name="NewAppScreen"
-                       component={NewAppScreen}
-                       options={{ title: "New App" }} />
-        <Drawer.Screen name="Settings"
-                       component={SettingsScreen}
-                       options={{ title: "Settings" }} />
-      </Drawer.Navigator>
-    </NavigationContainer>
+    <ContextProvider>
+      <NavigationContainer>
+        <Drawer.Navigator initialRouteName="CustomAppScreen">
+          <Drawer.Screen name="CustomAppScreen"
+                         component={CustomAppScreen}
+                         options={{ title: "Custom App" }} />
+          <Drawer.Screen name="FeatureScreen"
+                         component={FeatureScreen}
+                         options={{ title: "Feature" }} />
+          <Drawer.Screen name="NewAppScreen"
+                         component={NewAppScreen}
+                         options={{ title: "New App" }} />
+          <Drawer.Screen name="Settings"
+                         component={SettingsScreen}
+                         options={{ title: "Settings" }} />
+        </Drawer.Navigator>
+      </NavigationContainer>
+    </ContextProvider>
   );
 }
 
