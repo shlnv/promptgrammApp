@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { NEW_APP_CONTEXT } from "../contexts.ts";
+import { NEW_APP_CONTEXT } from "../../contextsForAI.ts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator, Alert, Button, Modal, TextInput, View } from "react-native";
 import * as React from "react";
-import { askGPT } from "../services/OpenAIService.ts";
+import { askGPT } from "../../services/OpenAIService.ts";
 
 function NewAppScreen({ navigation }: any) {
   const [code, setCode] = useState("");

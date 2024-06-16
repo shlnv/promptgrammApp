@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GPTmodels } from "../utils.ts";
+import { GPTmodels } from "../../utils.ts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
